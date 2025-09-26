@@ -1,0 +1,80 @@
+services:
+  influxdb:
+    image: influxdb:3-core
+    container_name: influxdb
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -H \"Authorization: Bearer $$(cat $${INFLUXDB3_ADMIN_TOKEN_FILE}\" http://localhost:${INFLUXDB_PORT:-8181}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - ${INFLUXDB_PORT:-8181}:8181
+    command:
+      - influxdb3
+      - serve
+    volumes:
+      - influxdb-data:/var/lib/influxdb:rw
+    #  - influxdb-plugins:/var/lib/influxdb3/plugins:rw
+    environment:
+      - INFLUXDB3_NODE_IDENTIFIER_PREFIX=${INFLUXDB_NODE_ID:-node0}
+      - INFLUXDB3_DB_DIR=/var/lib/influxdb3/data
+    #  - INFLUXDB3_PLUGIN_DIR=/var/lib/influxdb3/plugins
+      - INFLUXDB3_OBJECT_STORE=${INFLUXDB_ONJECT_STORE:-file}
+      - INFLUXDB3_BUCKET=${INFLUXDB_BUCKET:-default}
+      - INFLUXDB3_ADMIN_TOKEN_FILE=/run/secrets/influxdb-admin-token
+    secrets:
+      - influxdb-admin-token
+
+
+  influxui:
+    image: influxdata/influxdb3-ui:latest
+    container_name: influxui
+    ports:
+      - ${INFLUXDB_ADMIN_UI_PORT:-8182}:80"
+    command: 
+      - --mode=admin
+    volumes:
+    #  - ${PWD}/ui_conf.d:/app-root/config:ro
+      - influxui-db:/db:rw
+    environment:
+      - SESSION_SECRET_KEY=${INFLUXUI_KEY:-}
+
+
+  telegraf:
+    image: telegraf:1.26
+    container_name: telegraf
+    depends_on:
+      - influxdb
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
+  chronograf:
+    profiles:
+      - with-chronograf
+    depends_on:
+      - influxdb
+    image: chronograf:1.9
+    container_name: chronograf
+    ports:
+      - "8888:8888"
+
+  kapacitor:
+    profiles:
+      - with-kapacitor
+    depends_on:
+      - influxdb
+    image: kapacitor:1.6
+    container_name: kapacitor
+    ports:
+      - "9092:9092"
+    environment:
+      - KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086
+
+volumes:
+  influxdb-data:
+  influxdb-plugins:
+  influxui-db:
+
+secrets:
+  influxdb-admin-token:
+    file: ./secret_admin_token.json

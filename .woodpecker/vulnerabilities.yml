@@ -1,0 +1,22 @@
+steps:
+  scan_vuln:
+    when:
+      - event: [push]
+        branch: main
+        path:
+          include: ['*.yml', '*.yml', '.woodpecker/vulnerabilities.yml']
+      - event: [cron, manual]
+        branch: main
+    image: woodpeckerci/plugin-trivy
+    settings:
+      format: 'table'
+      output: 'gl-vulnerability-trivy.json'
+      severity: 'CRITICAL,HIGH,MEDIUM'
+      scan-type: 'all'
+      ignore-unfixed: true
+      vuln-type: 'os,library'
+      timeout: '10m'
+      skip-files: ''
+      skip-dirs: '.woodpecker'
+      cache-dir: '/tmp/.trivycache'
+  

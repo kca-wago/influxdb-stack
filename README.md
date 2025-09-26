@@ -4,6 +4,7 @@
     - [Prepare Telegraf default configuration](#prepare-telegraf-default-configuration)
     - [Prepare InfluxDB3 token](#prepare-influxdb3-token)
     - [Verify Telegraf](#verify-telegraf)
+- [Hints](#hints)
 
 
 
@@ -140,3 +141,9 @@ Verify telegraf has created tables in InfluxDB
 docker compose exec influxdb3-core influxdb3 query \
   "SHOW TABLES" --database local_system --token YOUR_TOKEN_STRING
 ```
+
+# Hints
+
+Docker best practise "How to Backup/restore" volumes:
+
+- (Backup & Restore)[https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes]

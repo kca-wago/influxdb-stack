@@ -1,0 +1,12 @@
+steps:
+  codequality.prettier:
+    when:
+      - event: [push]
+        branch: main
+        path:
+          include: ['docker-compose.yml', '.woodpecker/quality.yml']
+      - event: [cron, manual]
+        branch: main
+    image: woodpeckerci/plugin-prettier:next
+    commands:
+      - prettier --check "**/*.{yml,yaml,json}"

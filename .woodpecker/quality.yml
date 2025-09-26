@@ -1,0 +1,12 @@
+steps:
+  codequality.dclint:
+    when:
+      - event: [push]
+        branch: main
+        path:
+          include: ['docker-compose.yml', '.woodpecker/quality.yml']
+      - event: [cron, manual]
+        branch: main
+    image: zavoloklom/dclint:alpine
+    commands:
+      - /bin/dclint . -r -f codeclimate -o gl-codequality-dclint.json
